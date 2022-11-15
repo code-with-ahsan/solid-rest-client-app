@@ -1,0 +1,15 @@
+.list .list__item ion-icon {
+  display: none;
+}
+
+.list .list__item:hover ion-icon {
+  display: flex;
+}
+
+.list .list__item:hover .list__item--active + ion-icon {
+  @apply text-white;
+}
+
+.list .list__item--active {
+  @apply bg-purple-600 text-white;
+}
