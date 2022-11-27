@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "solid-app-router";
+import { Link, Outlet, useLocation, useNavigate } from "solid-app-router";
 import { Component, createSignal, For } from "solid-js";
 import IconButton from "../components/IconButton";
 import RequestModal from "../components/RequestModal";
@@ -8,12 +8,16 @@ import "./Home.css";
 const Home: Component = () => {
   const [showModal, setShowModal] = createSignal(false);
   const location = useLocation();
+  const navigate = useNavigate();
   return (
     <div class="flex flex-col md:flex-row gap-4 h-full flex-1">
       <RequestModal
         show={showModal()}
         onModalHide={(id: string | null) => {
           setShowModal(!showModal());
+          if (id) {
+            navigate(`/${id}`);
+          }
         }}
       />
       <div class="w-full md:w-1/4 bg-gray-200 min-h-full border-gray-300 border p-4 rounded-lg">
@@ -26,7 +30,12 @@ const Home: Component = () => {
           />
         </div>
         <div class="list">
-          <For each={restRequests()} fallback={<div>Loading...</div>}>
+          <For each={restRequests()} fallback={
+            <div 
+              onClick={() => setShowModal(true)}
+              class="cursor-pointer hover:bg-purple-600 hover:text-white flex justify-between gap p-2 bg-white border rounded-md items-center">
+              <p class="text-center w-full">No Requests. Click to add</p>
+            </div>}>
             {(item) => (
               <Link href={`/${item.id}`} class="relative list__item">
                 <div
@@ -49,9 +58,9 @@ const Home: Component = () => {
                     if (restRequests()?.length) {
                       const requests = restRequests() || [];
                       setRestRequests(requests.filter((i) => i.id !== item.id));
-                      // if (location.pathname === `/${item.id}`) {
-                      //   navigate("/");
-                      // }
+                      if (location.pathname === `/${item.id}`) {
+                        navigate("/");
+                      }
                     }
                   }}
                   class="absolute text-xl hover:scale-125 transition-all ease-in-out duration-100 hover:text-red-700 text-red-600 right-2 top-0 bottom-0 m-auto"
