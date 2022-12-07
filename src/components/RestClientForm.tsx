@@ -1,6 +1,6 @@
 
 import { createFormGroup, createFormControl, withControl } from "solid-forms";
-import { Component } from "solid-js";
+import { Component, createEffect } from "solid-js";
 import { IRestRequest } from "../interfaces/rest.interfaces";
 import { TextField } from "./TextField";
 
@@ -9,8 +9,8 @@ const controlFactory = () => {
     name: createFormControl<string>("New Request", {
       required: true,
       validators: (val: string) => {
-        return !val.length ? {isMissing: true} : null;
-      }
+        return !val.length ? { isMissing: true } : null;
+      },
     }),
     request: createFormGroup({
       method: createFormControl<string>("GET"),
@@ -34,6 +34,39 @@ export const RestClientForm = withControl<
     const controlGroup = () => props.control.controls;
     const requestControlGroup = () => controlGroup().request.controls;
     const request = () => props.request;
+
+    createEffect((requestId) => {
+      if (!request || !request()) {
+        return null;
+      }
+      if (request()?.id === requestId) {
+        return requestId;
+      }
+      const req = request()?.request;
+      controlGroup().name.setValue(request()?.name || "");
+      requestControlGroup().body.setValue(req?.body || "");
+      requestControlGroup().url.setValue(req?.url || "");
+      requestControlGroup().method.setValue(req?.method || "");
+      return request()?.id;
+    });
+
+    const bodyValueUpdated = (value: any) => {
+      try {
+        if (!value) {
+          requestControlGroup().body.setErrors(null);
+          return;
+        }
+        const pretty = JSON.stringify(JSON.parse(value), undefined, 4);
+        requestControlGroup().body.setValue(pretty);
+        requestControlGroup().body.setErrors(null);
+      } catch (e) {
+        requestControlGroup().body.setErrors({
+          invalidJson: true,
+        });
+      } finally {
+        props.formUpdate?.(props.control.value);
+      }
+    };
 
     return (
       <form
@@ -68,6 +101,9 @@ export const RestClientForm = withControl<
               id="name"
               label="Name"
               control={controlGroup().name}
+              valueUpdated={() => {
+                props.formUpdate?.(props.control.value);
+              }}
             />
           </div>
           <div>
@@ -79,6 +115,9 @@ export const RestClientForm = withControl<
               id="url"
               label="Url"
               control={requestControlGroup().url}
+              valueUpdated={() => {
+                props.formUpdate?.(props.control.value);
+              }}
             />
           </div>
 
@@ -89,6 +128,9 @@ export const RestClientForm = withControl<
               label="Method"
               placeholder="method"
               control={requestControlGroup().method}
+              valueUpdated={() => {
+                props.formUpdate?.(props.control.value);
+              }}
             />
           </div>
         </div>
@@ -100,6 +142,7 @@ export const RestClientForm = withControl<
             label="Body"
             placeholder="body"
             control={requestControlGroup().body}
+            valueUpdated={bodyValueUpdated}
           />
         </div>
 

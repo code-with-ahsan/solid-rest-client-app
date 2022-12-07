@@ -1,9 +1,12 @@
-import type { Component } from 'solid-js';
-import styles from './App.module.css';
-import { hashIntegration, Route, Router, Routes } from 'solid-app-router';
-import Navbar from './components/Navbar';
-import About from './pages/About';
-import Home from './pages/Home';
+import { Component, lazy } from "solid-js";
+import styles from "./App.module.css";
+import { hashIntegration, Route, Router, Routes } from "solid-app-router";
+import Navbar from "./components/Navbar";
+import About from "./pages/About";
+import Home from "./pages/Home";
+import RequestIndex from "./pages/Request";
+import { fetchSelectedRequest } from "./data-functions/fetch-selected-request";
+const RequestById = lazy(() => import("./pages/Request/[id]"));
 
 const App: Component = () => {
   return (
@@ -14,12 +17,12 @@ const App: Component = () => {
           <Routes>
             <Route path="/about" element={<About />} />
             <Route path="/" element={<Home />}>
-              {/* <Route path="/" element={<RestClientIndex />} />
+              <Route path="/" element={<RequestIndex />} />
               <Route
                 path="/:id"
-                element={<RestClient />}
+                element={<RequestById />}
                 data={fetchSelectedRequest}
-              /> */}
+              />
             </Route>
           </Routes>
         </main>

@@ -1,22 +1,25 @@
-import { Link, Outlet } from 'solid-app-router';
-import { Component, createSignal, For } from 'solid-js';
-import IconButton from '../components/IconButton';
-import RequestModal from '../components/RequestModal';
-import { restRequests, setRestRequests } from '../store';
+import { Link, Outlet, useLocation, useNavigate } from "solid-app-router";
+import { Component, createSignal, For } from "solid-js";
+import IconButton from "../components/IconButton";
+import RequestModal from "../components/RequestModal";
+import { restRequests, setRestRequests } from "../store";
 import "./Home.css";
 
 const Home: Component = () => {
   const [showModal, setShowModal] = createSignal(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   return (
     <div class="flex flex-col md:flex-row gap-4 h-full flex-1">
-      <div>
-        <RequestModal
-          show={showModal()}
-          onModalHide={(id: string | null) => {
-            setShowModal(!showModal());
-          }}
-        />
-      </div>
+      <RequestModal
+        show={showModal()}
+        onModalHide={(id: string | null) => {
+          setShowModal(!showModal());
+          if (id) {
+            navigate(`/${id}`);
+          }
+        }}
+      />
       <div class="w-full md:w-1/4 bg-gray-200 min-h-full border-gray-300 border p-4 rounded-lg">
         <div class="flex justify-between py-4">
           <h1 class="text-sm ">Rest Requests</h1>
@@ -27,7 +30,17 @@ const Home: Component = () => {
           />
         </div>
         <div class="list">
-          <For each={restRequests()} fallback={<div>Loading...</div>}>
+          <For
+            each={restRequests()}
+            fallback={
+              <button
+                onClick={() => setShowModal(true)}
+                class="cursor-pointer hover:bg-purple-600 hover:text-white flex justify-between gap p-2 bg-white border rounded-md items-center w-full"
+              >
+                <p class="text-center w-full">No Requests. Click to add</p>
+              </button>
+            }
+          >
             {(item) => (
               <Link href={`/${item.id}`} class="relative list__item">
                 <div
@@ -49,12 +62,10 @@ const Home: Component = () => {
                     e.stopImmediatePropagation();
                     if (restRequests()?.length) {
                       const requests = restRequests() || [];
-                      setRestRequests(
-                        requests.filter((i) => i.id !== item.id)
-                      );
-                      // if (location.pathname === `/${item.id}`) {
-                      //   navigate("/");
-                      // }
+                      setRestRequests(requests.filter((i) => i.id !== item.id));
+                      if (location.pathname === `/${item.id}`) {
+                        navigate("/");
+                      }
                     }
                   }}
                   class="absolute text-xl hover:scale-125 transition-all ease-in-out duration-100 hover:text-red-700 text-red-600 right-2 top-0 bottom-0 m-auto"
@@ -69,7 +80,7 @@ const Home: Component = () => {
         <Outlet />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default Home;
